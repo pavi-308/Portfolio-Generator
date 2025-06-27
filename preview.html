@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Preview Resume</title></head>
+<body>
+  <h2>Preview Your Resume</h2>
+  <p><strong>Name:</strong> {{ data['name'] }}</p>
+  <p><strong>Email:</strong> {{ data['email'] }}</p>
+  <p><strong>Mobile:</strong> {{ data['mobile'] }}</p>
+  <p><strong>Address:</strong> {{ data['address'] }}, {{ data['city'] }}, {{ data['state'] }}, {{ data['country'] }}</p>
+  <p><strong>Education:</strong><br>{{ data['education'] }}</p>
+  <p><strong>Experience:</strong><br>{{ data['experience'] }}</p>
+  <p><strong>Certifications:</strong><br>{{ data['certifications'] }}</p>
+  <a href="/download"><button>Download PDF</button></a>
+</body>
+</html>
