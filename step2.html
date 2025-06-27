@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resume Maker - Step 2 (Address)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      display: flex;
+      gap: 30px;
+    }
+    .form-container {
+      width: 40%;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 7px;
+      font-size: 1em;
+    }
+    .error {
+      color: red;
+      font-size: 0.85em;
+      margin-top: 2px;
+      min-height: 18px;
+    }
+    .mandatory {
+      color: red;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    .preview-container {
+      width: 50%;
+      border-radius: 8px;
+      padding: 20px;
+      box-sizing: border-box;
+      background: #f9f9f9;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      min-height: 200px;
+    }
+    .preview-section {
+      margin-bottom: 15px;
+    }
+    .preview-label {
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    .preview-address {
+      font-size: 1.2em;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <h2>Fill Address Details</h2>
+    <form id="addressForm" action="{{ url_for('step2') }}" method="POST">
+
+      <div class="form-group">
+        <label for="address">Address <span class="mandatory">*</span></label>
+        <input type="text" id="address" name="address" placeholder="Enter your address" />
+        <div class="error" id="addressError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="country">Country <span class="mandatory">*</span></label>
+        <select id="country" name="country">
+          <option value="">-- Select Country --</option>
+          <option value="India">India</option>
+          <option value="USA">USA</option>
+          <option value="Australia">Australia</option>
+        </select>
+        <div class="error" id="countryError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="state">State <span class="mandatory">*</span></label>
+        <select id="state" name="state" disabled>
+          <option value="">-- Select State --</option>
+        </select>
+        <div class="error" id="stateError"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="city">City <span class="mandatory">*</span></label>
+        <select id="city" name="city" disabled>
+          <option value="">-- Select City --</option>
+        </select>
+        <div class="error" id="cityError"></div>
+      </div>
+
+      <button type="submit">Next</button>
+    </form>
+  </div>
+
+  <div class="preview-container">
+    <div class="preview-section">
+      <span class="preview-label">Address:</span>
+      <span class="preview-address" id="previewAddress">-</span>
+    </div>
+    <div class="preview-section">
+      <span class="preview-label">City:</span>
+      <span id="previewCity">-</span>
+    </div>
+    <div class="preview-section">
+      <span class="preview-label">State:</span>
+      <span id="previewState">-</span>
+    </div>
+    <div class="preview-section">
+      <span class="preview-label">Country:</span>
+      <span id="previewCountry">-</span>
+    </div>
+  </div>
+
+<script>
+  // Data for country -> states -> cities
+  const locationData = {
+    "India": {
+      "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem"],
+      "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
+      "Karnataka": ["Bangalore", "Mysore", "Mangalore"]
+    },
+    "USA": {
+      "California": ["Los Angeles", "San Francisco", "San Diego"],
+      "Texas": ["Houston", "Dallas", "Austin"],
+      "New York": ["New York City", "Buffalo", "Rochester"]
+    },
+    "Australia": {
+      "New South Wales": ["Sydney", "Newcastle", "Wollongong"],
+      "Victoria": ["Melbourne", "Geelong", "Ballarat"],
+      "Queensland": ["Brisbane", "Gold Coast", "Cairns"]
+    }
+  };
+
+  // Elements
+  const addressField = document.getElementById("address");
+  const countryField = document.getElementById("country");
+  const stateField = document.getElementById("state");
+  const cityField = document.getElementById("city");
+
+  const addressError = document.getElementById("addressError");
+  const countryError = document.getElementById("countryError");
+  const stateError = document.getElementById("stateError");
+  const cityError = document.getElementById("cityError");
+
+  const previewAddress = document.getElementById("previewAddress");
+  const previewCountry = document.getElementById("previewCountry");
+  const previewState = document.getElementById("previewState");
+  const previewCity = document.getElementById("previewCity");
+
+  // Populate states based on selected country
+  countryField.addEventListener("change", () => {
+    const country = countryField.value;
+    stateField.innerHTML = '<option value="">-- Select State --</option>';
+    cityField.innerHTML = '<option value="">-- Select City --</option>';
+    cityField.disabled = true;
+
+    if (country && locationData[country]) {
+      const states = Object.keys(locationData[country]);
+      states.forEach(state => {
+        const option = document.createElement("option");
+        option.value = state;
+        option.textContent = state;
+        stateField.appendChild(option);
+      });
+      stateField.disabled = false;
+    } else {
+      stateField.disabled = true;
+    }
+    updatePreview();
+  });
+
+  // Populate cities based on selected state
+  stateField.addEventListener("change", () => {
+    const country = countryField.value;
+    const state = stateField.value;
+    cityField.innerHTML = '<option value="">-- Select City --</option>';
+
+    if (country && state && locationData[country] && locationData[country][state]) {
+      locationData[country][state].forEach(city => {
+        const option = document.createElement("option");
+        option.value = city;
+        option.textContent = city;
+        cityField.appendChild(option);
+      });
+      cityField.disabled = false;
+    } else {
+      cityField.disabled = true;
+    }
+    updatePreview();
+  });
+
+  // Update preview live on input/select changes
+  [addressField, countryField, stateField, cityField].forEach(field => {
+    field.addEventListener("input", updatePreview);
+    field.addEventListener("change", updatePreview);
+  });
+
+  function updatePreview() {
+    previewAddress.textContent = addressField.value.trim() || "-";
+    previewCountry.textContent = countryField.value || "-";
+    previewState.textContent = stateField.value || "-";
+    previewCity.textContent = cityField.value || "-";
+  }
+
+  // Form validation on submit
+  const form = document.getElementById("addressForm");
+  form.addEventListener("submit", (e) => {
+    let isValid = true;
+
+    // Clear previous errors
+    addressError.textContent = "";
+    countryError.textContent = "";
+    stateError.textContent = "";
+    cityError.textContent = "";
+
+    if (!addressField.value.trim()) {
+      addressError.textContent = "Address is required.";
+      isValid = false;
+    }
+    if (!countryField.value) {
+      countryError.textContent = "Country is required.";
+      isValid = false;
+    }
+    if (!stateField.value) {
+      stateError.textContent = "State is required.";
+      isValid = false;
+    }
+    if (!cityField.value) {
+      cityError.textContent = "City is required.";
+      isValid = false;
+    }
+
+    if (!isValid) {
+      e.preventDefault();
+    }
+  });
+
+  // Initial preview update
+  updatePreview();
+</script>
+
+</body>
+</html>
